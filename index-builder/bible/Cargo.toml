@@ -1,0 +1,10 @@
+[package]
+name = "study-map-bible-indexer"
+version = "0.1.0"
+authors = ["Daniel Imfeld <daniel@imfeld.dev>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tantivy = "0.13.2"
