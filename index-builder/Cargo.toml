@@ -1,10 +1,21 @@
 [package]
-name = "study-map-bible-indexer"
+name = "study-map-index-builder"
 version = "0.1.0"
 authors = ["Daniel Imfeld <daniel@imfeld.dev>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "index-bible"
+path = "src/bible.rs"
+
+#[[bin]]
+#name = "index-book"
+#path = "src/book.rs"
+
 [dependencies]
+anyhow = "1.0.36"
+quick-xml = "0.20.0"
+structopt = "0.3.21"
 tantivy = "0.13.2"
