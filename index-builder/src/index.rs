@@ -4,10 +4,9 @@ use tantivy::{
   tokenizer::{Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, TextAnalyzer},
 };
 
-pub fn open_index(dir: Option<&Path>) -> Result<tantivy::Index, tantivy::TantivyError> {
-  let dir = dir.unwrap_or(Path::new("./data"));
-  if let Ok(indexResult) = tantivy::Index::open_in_dir(dir) {
-    return Ok(indexResult);
+pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
+  if let Ok(index_result) = tantivy::Index::open_in_dir(dir) {
+    return Ok(index_result);
   }
 
   let mut schema = Schema::builder();
