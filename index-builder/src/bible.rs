@@ -57,8 +57,7 @@ fn main() -> Result<()> {
         name.unwrap_or_else(|| format!("bible-{}", file.file_stem().unwrap().to_string_lossy()));
 
     let data_path = output.unwrap_or_else(|| std::env::current_dir().unwrap().join("data"));
-    let ind =
-        index::open_index(data_path.as_path()).map_err(|e| anyhow!("Opening index: {}", e))?;
+    let ind = index::open_index(&data_path).map_err(|e| anyhow!("Opening index: {}", e))?;
     let mut writer = ind
         .writer(100000000)
         .map_err(|e| anyhow!("Creating writer: {}", e))?;
@@ -70,7 +69,7 @@ fn main() -> Result<()> {
     let text_field = schema.get_field("text").unwrap();
     let book_id_field = schema.get_field("book").unwrap();
 
-    let mut stats = L0L1Stats::new(title);
+    let mut stats = L0L1Stats::new(title.clone());
 
     read_bible::read(&file, |passage| {
         stats.add(
@@ -103,6 +102,14 @@ fn main() -> Result<()> {
     serde_json::to_writer(&meta_file, &stats)?;
     meta_file.sync_all()?;
     drop(meta_file);
+
+    let mut catalog = index::Catalog::load(&data_path)?;
+    catalog.add(index::CatalogItem {
+        id: book_id,
+        name: title,
+    });
+
+    catalog.write(&data_path)?;
 
     Ok(())
 }
