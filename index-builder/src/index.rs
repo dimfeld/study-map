@@ -28,7 +28,7 @@ pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
 
   schema.add_text_field(
     "book",
-    TextOptions::default().set_indexing_options(
+    TextOptions::default().set_stored().set_indexing_options(
       TextFieldIndexing::default()
         .set_index_option(IndexRecordOption::Basic)
         .set_tokenizer("raw"),

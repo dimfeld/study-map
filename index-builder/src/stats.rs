@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 pub trait Stats {
   fn add(
@@ -10,18 +11,20 @@ pub trait Stats {
     l2: Option<usize>,
     value: &str,
   );
+
+  fn describe(self: &Self, l0: Option<usize>, l1: Option<usize>, l2: Option<usize>) -> String;
 }
 
 #[derive(Default, Deserialize, Serialize)]
 pub struct LeafStats {
-  #[serde(skip_serializing_if = "String::is_empty")]
+  #[serde(skip_serializing_if = "String::is_empty", default)]
   pub name: String,
   pub len: usize,
 }
 
 #[derive(Default, Deserialize, Serialize)]
 pub struct NodeStats<T> {
-  #[serde(skip_serializing_if = "String::is_empty")]
+  #[serde(skip_serializing_if = "String::is_empty", default)]
   pub name: String,
   pub children: Vec<T>,
 }
@@ -76,5 +79,30 @@ impl Stats for L0L1Stats {
     }
 
     l1_stats.len += value.len() + 1;
+  }
+
+  fn describe(self: &Self, l0: Option<usize>, l1: Option<usize>, l2: Option<usize>) -> String {
+    let l0_child = l0.and_then(|loc| self.children.get(loc));
+    let l1_child = l0_child
+      .zip(l1)
+      .and_then(|(child, loc)| child.children.get(loc));
+
+    let l1_name = l1_child
+      .and_then(|l| {
+        if l.name.len() == 0 {
+          None
+        } else {
+          Some(Cow::Borrowed(&l.name))
+        }
+      })
+      .or_else(|| l1.map(|l| Cow::Owned((l + 1).to_string())));
+
+    // This is hardcoded for Bible-style references right now.
+    match (l0_child, l1_name, l2) {
+      (Some(l0c), Some(l1_name), Some(l2)) => format!("{} {}:{}", l0c.name, l1_name, l2 + 1),
+      (Some(l0c), Some(l1_name), None) => format!("{} {}", l0c.name, l1_name),
+      (Some(l0c), None, None) => l0c.name.clone(),
+      _ => String::new(),
+    }
   }
 }
