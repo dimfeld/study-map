@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub trait Stats {
   fn add(
@@ -12,14 +12,14 @@ pub trait Stats {
   );
 }
 
-#[derive(Default, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct LeafStats {
   #[serde(skip_serializing_if = "String::is_empty")]
   pub name: String,
   pub len: usize,
 }
 
-#[derive(Default, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct NodeStats<T> {
   #[serde(skip_serializing_if = "String::is_empty")]
   pub name: String,

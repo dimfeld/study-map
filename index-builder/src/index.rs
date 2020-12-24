@@ -5,15 +5,26 @@ use std::fs::File;
 use std::path::Path;
 use tantivy::{
   schema::{IndexRecordOption, Schema, TextFieldIndexing, TextOptions, INDEXED, STORED},
-  tokenizer::{Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, TextAnalyzer},
+  tokenizer::{
+    Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, StopWordFilter, TextAnalyzer,
+  },
 };
 
 pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
-  if let Ok(index_result) = tantivy::Index::open_in_dir(dir) {
+  if let Ok(mut index_result) = tantivy::Index::open_in_dir(dir) {
+    make_book_tokenizer(&mut index_result);
     return Ok(index_result);
   }
 
   let mut schema = Schema::builder();
+  schema.add_text_field(
+    "doc_id",
+    TextOptions::default().set_indexing_options(
+      TextFieldIndexing::default()
+        .set_index_option(IndexRecordOption::Basic)
+        .set_tokenizer("raw"),
+    ),
+  );
 
   schema.add_text_field(
     "book",
@@ -28,11 +39,6 @@ pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
   schema.add_u64_field("l1", INDEXED | STORED);
   schema.add_u64_field("l2", INDEXED | STORED);
 
-  let tokenizer = TextAnalyzer::from(SimpleTokenizer)
-    .filter(RemoveLongFilter::limit(40))
-    .filter(LowerCaser)
-    .filter(Stemmer::new(Language::English));
-
   let text_options = TextOptions::default().set_indexing_options(
     TextFieldIndexing::default()
       .set_index_option(IndexRecordOption::WithFreqsAndPositions)
@@ -41,9 +47,8 @@ pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
 
   schema.add_text_field("text", text_options);
 
-  let index = tantivy::Index::create_in_dir(dir, schema.build())?;
-
-  index.tokenizers().register("book_tokenizer", tokenizer);
+  let mut index = tantivy::Index::create_in_dir(dir, schema.build())?;
+  make_book_tokenizer(&mut index);
 
   Ok(index)
 }
@@ -84,4 +89,195 @@ impl Catalog {
     drop(f);
     Ok(())
   }
+}
+
+fn make_book_tokenizer(index: &mut tantivy::Index) {
+  // This is the stopword list used by Lucene, taken from https://snowballstem.org/algorithms/english/stop.txt
+  let stopwords = vec![
+    "i",
+    "me",
+    "my",
+    "myself",
+    "we",
+    "our",
+    "ours",
+    "ourselves",
+    "you",
+    "your",
+    "yours",
+    "yourself",
+    "yourselves",
+    "he",
+    "him",
+    "his",
+    "himself",
+    "she",
+    "her",
+    "hers",
+    "herself",
+    "it",
+    "its",
+    "itself",
+    "they",
+    "them",
+    "their",
+    "theirs",
+    "themselves",
+    "what",
+    "which",
+    "who",
+    "whom",
+    "this",
+    "that",
+    "these",
+    "those",
+    "am",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "having",
+    "do",
+    "does",
+    "did",
+    "doing",
+    "would",
+    "should",
+    "could",
+    "ought",
+    "i'm",
+    "you're",
+    "he's",
+    "she's",
+    "it's",
+    "we're",
+    "they're",
+    "i've",
+    "you've",
+    "we've",
+    "they've",
+    "i'd",
+    "you'd",
+    "he'd",
+    "she'd",
+    "we'd",
+    "they'd",
+    "i'll",
+    "you'll",
+    "he'll",
+    "she'll",
+    "we'll",
+    "they'll",
+    "isn't",
+    "aren't",
+    "wasn't",
+    "weren't",
+    "hasn't",
+    "haven't",
+    "hadn't",
+    "doesn't",
+    "don't",
+    "didn't",
+    "won't",
+    "wouldn't",
+    "shan't",
+    "shouldn't",
+    "can't",
+    "cannot",
+    "couldn't",
+    "mustn't",
+    "let's",
+    "that's",
+    "who's",
+    "what's",
+    "here's",
+    "there's",
+    "when's",
+    "where's",
+    "why's",
+    "how's",
+    "a",
+    "an",
+    "the",
+    "and",
+    "but",
+    "if",
+    "or",
+    "because",
+    "as",
+    "until",
+    "while",
+    "of",
+    "at",
+    "by",
+    "for",
+    "with",
+    "about",
+    "against",
+    "between",
+    "into",
+    "through",
+    "during",
+    "before",
+    "after",
+    "above",
+    "below",
+    "to",
+    "from",
+    "up",
+    "down",
+    "in",
+    "out",
+    "on",
+    "off",
+    "over",
+    "under",
+    "again",
+    "further",
+    "then",
+    "once",
+    "here",
+    "there",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "any",
+    "both",
+    "each",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "no",
+    "nor",
+    "not",
+    "only",
+    "own",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+  ]
+  .into_iter()
+  .map(|x| String::from(x))
+  .collect::<Vec<_>>();
+
+  let tokenizer = TextAnalyzer::from(SimpleTokenizer)
+    .filter(RemoveLongFilter::limit(40))
+    .filter(LowerCaser)
+    .filter(StopWordFilter::remove(stopwords))
+    .filter(Stemmer::new(Language::English));
+
+  index.tokenizers().register("book_tokenizer", tokenizer);
 }

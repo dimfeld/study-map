@@ -67,13 +67,19 @@ fn main() -> Result<()> {
     let l1_field = schema.get_field("l1").unwrap();
     let l2_field = schema.get_field("l2").unwrap();
     let text_field = schema.get_field("text").unwrap();
+    let doc_id_field = schema.get_field("text").unwrap();
     let book_id_field = schema.get_field("book").unwrap();
 
     let mut stats = L0L1Stats::new(title.clone());
 
     read_bible::read(&file, |passage| {
+        let book_index = passage.book_index - 1;
+        let chapter = passage.chapter - 1;
+        let verse = passage.verse - 1;
+        let doc_id = format!("{}-{}-{}", book_index, chapter, verse);
+
         stats.add(
-            passage.book_index - 1,
+            book_index,
             Some(passage.book.as_ref()),
             passage.chapter - 1,
             None,
@@ -81,11 +87,13 @@ fn main() -> Result<()> {
             passage.text.as_ref(),
         );
 
+        writer.delete_term(tantivy::Term::from_field_text(doc_id_field, &doc_id));
         writer.add_document(doc!(
+            doc_id_field => doc_id,
             book_id_field => book_id.clone(),
-            l0_field => passage.book_index as u64 - 1,
-            l1_field=> passage.chapter as u64 - 1,
-            l2_field => passage.verse as u64 - 1,
+            l0_field => book_index as u64,
+            l1_field=> chapter as u64,
+            l2_field => verse as u64,
             text_field => passage.text,
         ));
 
