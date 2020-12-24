@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use tantivy::collector::TopDocs;
+use tantivy::SnippetGenerator;
 mod index;
 
 pub fn main() -> Result<()> {
@@ -22,9 +23,23 @@ pub fn main() -> Result<()> {
     .search(&query, &TopDocs::with_limit(100000))
     .map_err(|e| anyhow!("{}", e))?;
 
+  let mut snippet_generator =
+    SnippetGenerator::create(&searcher, &query, text_field).map_err(|e| anyhow!("{}", e))?;
+  snippet_generator.set_max_num_chars(100);
+
+  if results.len() == 0 {
+    println!("No results!");
+  }
+
   for (score, doc_address) in results {
     let doc = searcher.doc(doc_address).map_err(|e| anyhow!("{}", e))?;
-    println!("{}: {}", score, schema.to_json(&doc));
+    let snippet = snippet_generator.snippet_from_doc(&doc);
+    println!(
+      "{}: {} - {}",
+      score,
+      schema.to_json(&doc),
+      snippet.to_html()
+    );
   }
 
   Ok(())

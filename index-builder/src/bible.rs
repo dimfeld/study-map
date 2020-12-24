@@ -67,7 +67,7 @@ fn main() -> Result<()> {
     let l1_field = schema.get_field("l1").unwrap();
     let l2_field = schema.get_field("l2").unwrap();
     let text_field = schema.get_field("text").unwrap();
-    let doc_id_field = schema.get_field("text").unwrap();
+    let doc_id_field = schema.get_field("doc_id").unwrap();
     let book_id_field = schema.get_field("book").unwrap();
 
     let mut stats = L0L1Stats::new(title.clone());
@@ -76,7 +76,7 @@ fn main() -> Result<()> {
         let book_index = passage.book_index - 1;
         let chapter = passage.chapter - 1;
         let verse = passage.verse - 1;
-        let doc_id = format!("{}-{}-{}", book_index, chapter, verse);
+        let doc_id = format!("{}-{}-{}-{}", book_id, book_index, chapter, verse);
 
         stats.add(
             book_index,

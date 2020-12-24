@@ -39,7 +39,7 @@ pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
   schema.add_u64_field("l1", INDEXED | STORED);
   schema.add_u64_field("l2", INDEXED | STORED);
 
-  let text_options = TextOptions::default().set_indexing_options(
+  let text_options = TextOptions::default().set_stored().set_indexing_options(
     TextFieldIndexing::default()
       .set_index_option(IndexRecordOption::WithFreqsAndPositions)
       .set_tokenizer("book_tokenizer"),

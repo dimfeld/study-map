@@ -60,6 +60,12 @@ pub fn read<F: FnMut(Passage) -> Result<()>>(path: &Path, mut callback: F) -> Re
                     // TODO keep statistics on book/chapter lengths
                 }
             }
+            Ok(Event::End(ref e)) => match e.name() {
+                b"b" => current_book = String::new(),
+                b"c" => current_chapter = 0,
+                b"v" => current_verse = 0,
+                _ => (),
+            },
             Ok(Event::Eof) => break,
             Err(e) => return Err(e.into()),
             _ => (),
