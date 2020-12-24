@@ -1,5 +1,5 @@
 [package]
-name = "study-map-index-builder"
+name = "study_map_index"
 version = "0.1.0"
 authors = ["Daniel Imfeld <daniel@imfeld.dev>"]
 edition = "2018"
@@ -17,6 +17,10 @@ path = "src/bible.rs"
 #[[bin]]
 #name = "index-book"
 #path = "src/book.rs"
+
+[lib]
+path = "src/lib.rs"
+name = "study_map_index"
 
 [dependencies]
 anyhow = "1.0.36"

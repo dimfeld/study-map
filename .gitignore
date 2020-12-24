@@ -3,4 +3,7 @@ build
 web_modules
 node_modules
 yarn-error.log
-data
+api/data
+api/target
+
+.vercel

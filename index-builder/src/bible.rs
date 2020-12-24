@@ -31,7 +31,7 @@ pub struct Config {
     )]
     title: Option<String>,
 
-    #[structopt(short, long, help = r#"Defaults to ./data"#)]
+    #[structopt(short, long, help = r#"Defaults to ./api/data"#)]
     output: Option<PathBuf>,
 }
 
@@ -56,7 +56,7 @@ fn main() -> Result<()> {
     let book_id =
         name.unwrap_or_else(|| format!("bible-{}", file.file_stem().unwrap().to_string_lossy()));
 
-    let data_path = output.unwrap_or_else(|| std::env::current_dir().unwrap().join("data"));
+    let data_path = output.unwrap_or_else(|| std::env::current_dir().unwrap().join("api/data"));
     let ind = index::open_index(&data_path).map_err(|e| anyhow!("Opening index: {}", e))?;
     let mut writer = ind
         .writer(100000000)

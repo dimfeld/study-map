@@ -6,7 +6,7 @@
     "start": "snowpack dev",
     "build": "snowpack build",
     "test": "web-test-runner \"src/**/*.test.js\"",
-    "clean-data": "rimraf data/*"
+    "clean-data": "rimraf api/data/*"
   },
   "dependencies": {
     "svelte": "^3.31.0",

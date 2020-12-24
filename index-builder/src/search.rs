@@ -21,7 +21,7 @@ fn get_stats_file(path: &std::path::Path) -> Result<Box<dyn Stats>> {
 }
 
 pub fn main() -> Result<()> {
-  let dir = std::env::current_dir().unwrap().join("data");
+  let dir = std::env::current_dir().unwrap().join("api/data");
 
   // let catalog_file = File::open(dir.join("catalog.json"))?;
   // let catalog: Catalog = serde_json::from_reader(catalog_file)?;
