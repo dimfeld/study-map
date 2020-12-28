@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use serde::Serialize;
 use tantivy::{
   collector::TopDocs,
   query::{BooleanQuery, Occur, Query},
@@ -6,6 +7,7 @@ use tantivy::{
   Index, SnippetGenerator, Term,
 };
 
+#[derive(Serialize)]
 pub struct SearchResult {
   pub score: f32,
   pub book_id: String,
@@ -13,7 +15,9 @@ pub struct SearchResult {
   pub l0: Option<usize>,
   pub l1: Option<usize>,
   pub l2: Option<usize>,
-  pub snippet: tantivy::Snippet,
+
+  pub snippet: String,
+  pub snippet_indexes: Vec<(usize, usize)>,
 }
 
 pub struct Searcher<'a> {
@@ -118,6 +122,11 @@ impl<'a> Searcher<'a> {
         snippet_generator.set_max_num_chars(text.len());
 
         let snippet = snippet_generator.snippet_from_doc(&doc);
+        let snippet_indexes = snippet
+          .highlighted()
+          .iter()
+          .map(|s| s.bounds())
+          .collect::<Vec<_>>();
 
         Ok(SearchResult {
           score,
@@ -126,7 +135,8 @@ impl<'a> Searcher<'a> {
           l1,
           l2,
           text: String::from(text),
-          snippet,
+          snippet: snippet.fragments().to_string(),
+          snippet_indexes,
         })
       })
       .collect::<Result<Vec<_>>>()

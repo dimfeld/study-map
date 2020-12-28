@@ -51,8 +51,8 @@ fn main() -> Result<()> {
         "{}: {} - {} {:?}\n",
         result.score,
         stats.describe(result.l0, result.l1, result.l2),
-        result.snippet.fragments(),
-        result.snippet.highlighted()
+        result.snippet,
+        result.snippet_indexes
       ))
       .or_else(|e| match e.kind() {
         // Don't complain when the output is piped into `head` or something that ends early.

@@ -1,36 +1,24 @@
-use anyhow::{anyhow, Result};
-use now_lambda::{error::NowError, http::StatusCode, lambda, IntoResponse, Request, Response};
-use serde_json;
-use std::env;
-use std::error::Error;
+use anyhow::anyhow;
+use now_lambda::{http::StatusCode, lambda, Request};
 use std::path::Path;
-use tantivy;
 
-use study_map_index::index::*;
+use lib::{respond, RequestError, Response};
 
-struct Context {
-  index: tantivy::Index,
-}
+use study_map_index::{index::*, search::*};
 
-fn handler(ctx: &Context, req: Request) -> Result<impl IntoResponse, NowError> {
-  let output = format!("{:?}", ctx.index.schema().fields().collect::<Vec<_>>());
-  let response = Response::builder()
-    .status(StatusCode::OK)
-    .header("Content-Type", "text/plain")
-    .body(output)
-    .expect("Internal Server Error");
-
-  Ok(response)
+fn handler(req: Request) -> Result<Response, RequestError> {
+  let output = String::new();
+  Ok(Response {
+    code: StatusCode::OK,
+    content_type: "text/plain",
+    data: output,
+  })
 }
 
 // Start the runtime with the handler
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
   let index_dir = Path::new("./data");
-  let index = open_index(index_dir).map_err(|e| anyhow!("Opening index: {}", e))?;
-
-  let ctx = Context { index };
-
-  let handler_wrapper = |req: Request| handler(&ctx, req);
+  let handler_wrapper = |req: Request| respond(handler(req));
 
   Ok(lambda!(handler_wrapper))
 }
