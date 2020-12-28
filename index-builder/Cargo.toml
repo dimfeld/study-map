@@ -8,7 +8,7 @@ edition = "2018"
 
 [[bin]]
 name = "search"
-path = "src/search.rs"
+path = "src/search_bin.rs"
 
 [[bin]]
 name = "index-bible"
