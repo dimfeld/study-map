@@ -1,3 +1,4 @@
+use crate::error::Error;
 use anyhow::{anyhow, Result};
 use serde::Serialize;
 use tantivy::{
@@ -39,8 +40,8 @@ pub struct Searcher<'a> {
 }
 
 impl<'a> Searcher<'a> {
-  pub fn new(index: &'a tantivy::Index) -> Result<Self> {
-    let reader = index.reader().map_err(|e| anyhow!("{}", e))?;
+  pub fn new(index: &'a tantivy::Index) -> Result<Self, Error> {
+    let reader = index.reader()?;
     let searcher = reader.searcher();
 
     let schema = searcher.schema();
@@ -74,7 +75,7 @@ impl<'a> Searcher<'a> {
     l0: usize,
     l1: Option<usize>,
     l2: Option<usize>,
-  ) -> Result<Vec<TextResult>> {
+  ) -> Result<Vec<TextResult>, Error> {
     let term_components = vec![
       Some(Term::from_field_text(self.book_field, book_id)),
       Some(Term::from_field_u64(self.l0_field, l0 as u64)),
@@ -82,9 +83,9 @@ impl<'a> Searcher<'a> {
       l2.map(|l2| Term::from_field_u64(self.l2_field, l2 as u64)),
     ]
     .into_iter()
-    .filter(|i| i.is_some())
+    .flatten()
     .map(|i| {
-      let q: Box<dyn Query> = Box::new(TermQuery::new(i.unwrap(), IndexRecordOption::Basic));
+      let q: Box<dyn Query> = Box::new(TermQuery::new(i, IndexRecordOption::Basic));
       (Occur::Must, q)
     })
     .collect::<Vec<_>>();
@@ -93,14 +94,10 @@ impl<'a> Searcher<'a> {
 
     self
       .searcher
-      .search(&query, &TopDocs::with_limit(100000))
-      .map_err(|e| anyhow!("{}", e))?
+      .search(&query, &TopDocs::with_limit(100000))?
       .into_iter()
       .map(|(_score, doc_address)| {
-        let doc = self
-          .searcher
-          .doc(doc_address)
-          .map_err(|e| anyhow!("{}", e))?;
+        let doc = self.searcher.doc(doc_address)?;
 
         let l0 = doc.get_first(self.l0_field).map(|l| l.u64_value() as usize);
         let l1 = doc.get_first(self.l1_field).map(|l| l.u64_value() as usize);
@@ -129,16 +126,16 @@ impl<'a> Searcher<'a> {
           l2,
         })
       })
-      .collect::<Result<Vec<_>>>()
+      .collect::<Result<Vec<_>, Error>>()
   }
 
-  pub fn search(&self, query_text: &str, book_ids: &[String]) -> Result<Vec<SearchResult>> {
+  pub fn search(&self, query_text: &str, book_ids: &[String]) -> Result<Vec<SearchResult>, Error> {
     let mut parser = tantivy::query::QueryParser::for_index(self.index, vec![self.text_field]);
     parser.set_conjunction_by_default();
 
     let parsed_query = parser
       .parse_query(&query_text)
-      .map_err(|e| anyhow!("{}", e))?;
+      .map_err(|_e| Error::QueryParseError)?;
 
     let query: Box<dyn Query>;
     if book_ids.is_empty() {
@@ -160,23 +157,19 @@ impl<'a> Searcher<'a> {
 
     self
       .searcher
-      .search(&query, &TopDocs::with_limit(100000))
-      .map_err(|e| anyhow!("{}", e))?
+      .search(&query, &TopDocs::with_limit(100000))?
       .into_iter()
       .map(|(score, doc_address)| {
-        let doc = self
-          .searcher
-          .doc(doc_address)
-          .map_err(|e| anyhow!("{}", e))?;
+        let doc = self.searcher.doc(doc_address)?;
 
         let book_id = doc
           .get_first(self.book_field)
           .and_then(|f| f.text())
           .ok_or_else(|| {
-            anyhow!(
+            Error::Other(anyhow!(
               "Got a document without a book_id - {}",
               self.searcher.schema().to_json(&doc)
-            )
+            ))
           })?;
 
         let l0 = doc.get_first(self.l0_field).map(|l| l.u64_value() as usize);
@@ -188,8 +181,7 @@ impl<'a> Searcher<'a> {
           .and_then(|t| t.text())
           .unwrap_or("");
         let mut snippet_generator =
-          SnippetGenerator::create(&self.searcher, &query, self.text_field)
-            .map_err(|e| anyhow!("{}", e))?;
+          SnippetGenerator::create(&self.searcher, &query, self.text_field)?;
 
         snippet_generator.set_max_num_chars(text.len());
 
@@ -221,6 +213,6 @@ impl<'a> Searcher<'a> {
           highlight: snippet_indexes,
         })
       })
-      .collect::<Result<Vec<_>>>()
+      .collect::<Result<Vec<_>, Error>>()
   }
 }

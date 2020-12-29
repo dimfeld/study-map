@@ -16,6 +16,10 @@ path = "/home/dimfeld/projects/study-map/api/search.rs"
 name = "text"
 path = "/home/dimfeld/projects/study-map/api/text.rs"
 
+[[bin]]
+name = "info"
+path = "/home/dimfeld/projects/study-map/api/info.rs"
+
 [lib]
 name = "lib"
 path = "_lib.rs"

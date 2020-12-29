@@ -6,6 +6,7 @@ use std::io::Write;
 use index::{Catalog, CatalogItem};
 use stats::{L0L1Stats, Stats};
 
+mod error;
 mod index;
 mod readonly_dir_wrapper;
 mod search;

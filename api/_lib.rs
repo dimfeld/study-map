@@ -1,6 +1,4 @@
-use anyhow::{anyhow, Result};
 use now_lambda::http::StatusCode;
-use thiserror::Error;
 
 pub struct Response {
   pub code: now_lambda::http::StatusCode,
@@ -8,10 +6,19 @@ pub struct Response {
   pub data: String,
 }
 
-#[derive(Error, Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum RequestError {
   #[error("Invalid query string: {0}")]
   QueryStringError(#[from] serde_qs::Error),
+
+  #[error("Not found")]
+  NotFoundError,
+
+  #[error("Search Error: {0}")]
+  SearchError(#[from] study_map_index::Error),
+
+  #[error(transparent)]
+  IoError(#[from] std::io::Error),
 
   #[error(transparent)]
   Other(#[from] anyhow::Error),
@@ -21,6 +28,8 @@ impl RequestError {
   pub fn status_code(&self) -> StatusCode {
     match self {
       RequestError::QueryStringError(_) => StatusCode::BAD_REQUEST,
+      RequestError::NotFoundError => StatusCode::NOT_FOUND,
+      RequestError::SearchError(study_map_index::Error::QueryParseError) => StatusCode::BAD_REQUEST,
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     }
   }

@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use now_lambda::{error::NowError, http::StatusCode, lambda, IntoResponse, Request};
+use now_lambda::{http::StatusCode, lambda, Request};
 use serde::Deserialize;
 use std::path::Path;
 use std::rc::Rc;
