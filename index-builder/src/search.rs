@@ -60,7 +60,8 @@ impl<'a> Searcher<'a> {
   }
 
   pub fn search(&self, query_text: &str, book_ids: &[String]) -> Result<Vec<SearchResult>> {
-    let parser = tantivy::query::QueryParser::for_index(self.index, vec![self.text_field]);
+    let mut parser = tantivy::query::QueryParser::for_index(self.index, vec![self.text_field]);
+    parser.set_conjunction_by_default();
 
     let parsed_query = parser
       .parse_query(&query_text)

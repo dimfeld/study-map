@@ -1,69 +1,100 @@
-<script>
-  import {onMount} from 'svelte';
-  let count = 0;
-  onMount(() => {
-    const interval = setInterval(() => count++, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  });
+<script lang="typescript">
+  import debounce from "just-debounce-it";
+  import ky from "ky";
+  import books from "./bible_books";
+
+  interface Result {
+    score: number;
+    book_id: string;
+    text: string;
+    l0: number;
+    l1: number;
+    l2: number;
+    highlight: [start: number, end: number][];
+  }
+
+  let searchValue = "";
+
+  let abortController = new AbortController();
+
+  async function search() {
+    abortController.abort();
+
+    try {
+      results = await ky
+        .get(`/api/search`, {
+          signal: abortController.signal,
+          searchParams: {
+            query: searchValue,
+          },
+        })
+        .json();
+    } catch (e) {
+      if (e.name !== "AbortError") {
+        throw e;
+      }
+    }
+  }
+
+  const debouncedSearch = debounce(search, 200);
+
+  function highlightOne(text: string) {
+    return `<b>${text}</b>`;
+  }
+
+  function highlight(result: Result) {
+    let text = result.text;
+    for (let i = result.highlight.length - 1; i >= 0; --i) {
+      let [start, end] = result.highlight[i];
+      text =
+        text.slice(0, start) +
+        highlightOne(text.slice(start, end)) +
+        text.slice(end);
+    }
+
+    return text;
+  }
+
+  let results: Result[] = [];
 </script>
 
-<style>
-  :global(body) {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-  }
-  .App {
-    text-align: center;
-  }
-  .App code {
-    background: #0002;
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-  .App p {
-    margin: 0.4rem;
+<style lang="postcss">
+  #app {
+    @apply h-screen w-screen;
+    grid-template:
+      "header" 80px
+      "content" auto
+      / auto;
   }
 
-  .App-header {
-    background-color: #f9f6f6;
-    color: #333;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
+  #app > header {
+    grid-area: header;
   }
-  .App-link {
-    color: #ff3e00;
-  }
-  .App-logo {
-    height: 36vmin;
-    pointer-events: none;
-    margin-bottom: 3rem;
-    animation: App-logo-pulse infinite 1.6s ease-in-out alternate;
-  }
-  @keyframes App-logo-pulse {
-    from {
-      transform: scale(1);
-    }
-    to {
-      transform: scale(1.06);
-    }
+
+  main {
+    grid-area: content;
+    @apply p-2;
   }
 </style>
 
-<div class="App">
-  <header class="App-header">
-    <img src="/logo.svg" class="App-logo" alt="logo" />
-    <p>Edit <code>src/App.svelte</code> and save to reload.</p>
-    <p>Page has been open for <code>{count}</code> seconds.</p>
-    <p>
-      <a class="App-link" href="https://svelte.dev" target="_blank" rel="noopener noreferrer">
-        Learn Svelte
-      </a>
-    </p>
+<div id="app">
+  <header class="font-sans p-2 bg-primary-700">
+    <span class="text-primary-100">Enter your search</span>
+    <input
+      class="w-48 px-2"
+      type="search"
+      bind:value={searchValue}
+      on:input={debouncedSearch} />
   </header>
+  <main id="content">
+    <p>{results.length} results</p>
+    {#each results as result}
+      <div class="py-2">
+        <p>{books[result.l0]} {result.l1 + 1}:{result.l2 + 1}</p>
+        <p class="font-serif">
+          {@html highlight(result)}
+        </p>
+      </div>
+    {/each}
+  </main>
 </div>
