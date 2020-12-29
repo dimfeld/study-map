@@ -39,7 +39,7 @@
   const debouncedSearch = debounce(search, 200);
 
   function highlightOne(text: string) {
-    return `<b>${text}</b>`;
+    return `<span class="highlight">${text}</span>`;
   }
 
   function highlight(result: Result) {
@@ -75,13 +75,17 @@
     grid-area: content;
     @apply p-2;
   }
+
+  :global(.highlight) {
+    @apply font-medium text-amber-600;
+  }
 </style>
 
-<div id="app">
+<div id="app" class="bg-gray-50">
   <header class="font-sans p-2 bg-primary-700">
     <span class="text-primary-100">Enter your search</span>
     <input
-      class="w-48 px-2"
+      class="w-48 px-2 rounded"
       type="search"
       bind:value={searchValue}
       on:input={debouncedSearch} />
