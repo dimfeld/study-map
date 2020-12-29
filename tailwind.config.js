@@ -12,6 +12,8 @@ module.exports = {
       gray: colors.gray,
       transparent: 'transparent',
       current: 'currentColor',
+      white: 'white',
+      black: 'black',
     },
     extend: {
       fontFamily: {
@@ -22,5 +24,4 @@ module.exports = {
     },
   },
   variants: {},
-  plugins: [],
 };

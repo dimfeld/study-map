@@ -60,10 +60,10 @@
 
 <style lang="postcss">
   #app {
-    @apply h-screen w-screen;
+    @apply h-screen w-full overflow-hidden grid;
     grid-template:
-      "header" 80px
-      "content" auto
+      "header" 3rem
+      "content" 1fr
       / auto;
   }
 
@@ -73,7 +73,7 @@
 
   main {
     grid-area: content;
-    @apply p-2;
+    @apply p-2 overflow-auto;
   }
 
   :global(.highlight) {
@@ -82,11 +82,11 @@
 </style>
 
 <div id="app" class="bg-gray-50">
-  <header class="font-sans p-2 bg-primary-700">
+  <header class="flex space-x-2 items-center font-sans p-2 bg-primary-700">
     <span class="text-primary-100">Enter your search</span>
     <input
-      class="w-48 px-2 rounded"
-      type="search"
+      class="w-48 shadow-sm focus:ring-primary-500 focus:border-primary-500 block sm:text-sm border-gray-300 rounded-md"
+      type="text"
       bind:value={searchValue}
       on:input={debouncedSearch} />
   </header>
