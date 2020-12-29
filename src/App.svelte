@@ -1,6 +1,8 @@
 <script lang="typescript">
+  import { onMount } from "svelte";
   import debounce from "just-debounce-it";
   import ky from "ky";
+  import * as idb from "idb-keyval";
   import books from "./bible_books";
 
   interface Result {
@@ -15,10 +17,33 @@
 
   let searchValue = "";
 
+  interface StoredData {
+    searchValue?: string;
+  }
+
+  const storageKey = "study-map-stored-data";
+
+  onMount(async () => {
+    let storedData: StoredData = (await idb.get(storageKey)) || {};
+
+    searchValue = storedData.searchValue ?? "";
+    if (searchValue) {
+      search();
+    }
+  });
+
+  const updateStorage = debounce(() => idb.set(storageKey, storedData), 1000);
+
+  $: storedData = { searchValue };
+  $: storedData && updateStorage();
+
   let abortController = new AbortController();
 
   async function search() {
     abortController.abort();
+    if (!searchValue) {
+      return;
+    }
 
     try {
       results = await ky
