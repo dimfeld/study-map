@@ -2,8 +2,8 @@ use anyhow::{anyhow, Result};
 use serde::Serialize;
 use tantivy::{
   collector::TopDocs,
-  query::{BooleanQuery, Occur, Query},
-  schema::Field,
+  query::{BooleanQuery, Occur, Query, TermQuery},
+  schema::{Field, IndexRecordOption},
   Index, SnippetGenerator, Term,
 };
 
@@ -16,6 +16,15 @@ pub struct SearchResult {
   pub l1: Option<usize>,
   pub l2: Option<usize>,
   pub highlight: Vec<(usize, usize)>,
+}
+
+#[derive(Serialize)]
+pub struct TextResult {
+  pub book_id: String,
+  pub text: String,
+  pub l0: Option<usize>,
+  pub l1: Option<usize>,
+  pub l2: Option<usize>,
 }
 
 pub struct Searcher<'a> {
@@ -57,6 +66,70 @@ impl<'a> Searcher<'a> {
       l1_field,
       l2_field,
     })
+  }
+
+  pub fn get_text(
+    &self,
+    book_id: &str,
+    l0: usize,
+    l1: Option<usize>,
+    l2: Option<usize>,
+  ) -> Result<Vec<TextResult>> {
+    let term_components = vec![
+      Some(Term::from_field_text(self.book_field, book_id)),
+      Some(Term::from_field_u64(self.l0_field, l0 as u64)),
+      l1.map(|l1| Term::from_field_u64(self.l1_field, l1 as u64)),
+      l2.map(|l2| Term::from_field_u64(self.l2_field, l2 as u64)),
+    ]
+    .into_iter()
+    .filter(|i| i.is_some())
+    .map(|i| {
+      let q: Box<dyn Query> = Box::new(TermQuery::new(i.unwrap(), IndexRecordOption::Basic));
+      (Occur::Must, q)
+    })
+    .collect::<Vec<_>>();
+
+    let query = BooleanQuery::from(term_components);
+
+    self
+      .searcher
+      .search(&query, &TopDocs::with_limit(100000))
+      .map_err(|e| anyhow!("{}", e))?
+      .into_iter()
+      .map(|(_score, doc_address)| {
+        let doc = self
+          .searcher
+          .doc(doc_address)
+          .map_err(|e| anyhow!("{}", e))?;
+
+        let l0 = doc.get_first(self.l0_field).map(|l| l.u64_value() as usize);
+        let l1 = doc.get_first(self.l1_field).map(|l| l.u64_value() as usize);
+        let l2 = doc.get_first(self.l2_field).map(|l| l.u64_value() as usize);
+
+        let text = doc
+          .get_first(self.text_field)
+          .and_then(|t| t.text())
+          .unwrap_or("");
+
+        let book_id = doc
+          .get_first(self.book_field)
+          .and_then(|f| f.text())
+          .ok_or_else(|| {
+            anyhow!(
+              "Got a document without a book_id - {}",
+              self.searcher.schema().to_json(&doc)
+            )
+          })?;
+
+        Ok(TextResult {
+          book_id: String::from(book_id),
+          text: String::from(text),
+          l0,
+          l1,
+          l2,
+        })
+      })
+      .collect::<Result<Vec<_>>>()
   }
 
   pub fn search(&self, query_text: &str, book_ids: &[String]) -> Result<Vec<SearchResult>> {
