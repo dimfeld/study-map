@@ -1,14 +1,25 @@
+use crate::readonly_dir_wrapper;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
 use std::path::Path;
 use tantivy::{
+  directory::MmapDirectory,
   schema::{IndexRecordOption, Schema, TextFieldIndexing, TextOptions, INDEXED, STORED},
   tokenizer::{
     Language, LowerCaser, RemoveLongFilter, SimpleTokenizer, Stemmer, StopWordFilter, TextAnalyzer,
   },
 };
+
+pub fn open_readonly_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
+  let mmap_directory = MmapDirectory::open(dir)?;
+  let d = readonly_dir_wrapper::ReadOnlyDirectoryWrapper::new(mmap_directory);
+  tantivy::Index::open(d).map(|mut index| {
+    make_book_tokenizer(&mut index);
+    index
+  })
+}
 
 pub fn open_index(dir: &Path) -> Result<tantivy::Index, tantivy::TantivyError> {
   if let Ok(mut index_result) = tantivy::Index::open_in_dir(dir) {

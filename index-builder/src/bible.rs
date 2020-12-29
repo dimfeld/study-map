@@ -7,6 +7,7 @@ use tantivy::doc;
 
 mod index;
 mod read_bible;
+mod readonly_dir_wrapper;
 mod stats;
 
 #[derive(Debug, StructOpt)]

@@ -10,7 +10,7 @@ use study_map_index::{index::*, search::*};
 
 #[derive(Deserialize)]
 struct Qs {
-  book_ids: Vec<String>,
+  book_ids: Option<Vec<String>>,
   query: String,
 }
 
@@ -22,9 +22,11 @@ struct Context<'a> {
 fn handler(ctx: &Context, req: Request) -> Result<Response, RequestError> {
   let q = req.uri().query().unwrap_or("");
 
-  let qs: Qs = serde_qs::from_str(q)?;
+  let qs: Qs = serde_qs::Config::new(1, false).deserialize_str(q)?;
 
-  let results = ctx.searcher.search(&qs.query, &qs.book_ids)?;
+  let results = ctx
+    .searcher
+    .search(&qs.query, &qs.book_ids.unwrap_or_default())?;
   let output = serde_json::to_string(&results).map_err(anyhow::Error::new)?;
 
   Ok(Response {
@@ -37,7 +39,7 @@ fn handler(ctx: &Context, req: Request) -> Result<Response, RequestError> {
 // Start the runtime with the handler
 fn main() -> anyhow::Result<()> {
   let index_dir = Path::new("./data");
-  let index = Rc::new(open_index(index_dir).map_err(|e| anyhow!("Opening index: {}", e))?);
+  let index = Rc::new(open_readonly_index(index_dir).map_err(|e| anyhow!("Opening index: {}", e))?);
   let searcher = Searcher::new(&index)?;
 
   let ctx = Context {

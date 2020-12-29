@@ -7,6 +7,7 @@ use index::{Catalog, CatalogItem};
 use stats::{L0L1Stats, Stats};
 
 mod index;
+mod readonly_dir_wrapper;
 mod search;
 mod stats;
 

@@ -41,5 +41,6 @@ pub fn respond(
   now_lambda::Response::builder()
     .status(res.code)
     .header("Content-Type", res.content_type)
+    .header("Cache-Control", "max-age=300, s-maxage=31536000")
     .body(res.data)
 }
