@@ -21,12 +21,12 @@
     searchValue?: string;
   }
 
-  const storageKey = "study-map-stored-data";
+  const storageKey = "study-map:params";
 
   onMount(async () => {
-    let storedData: StoredData = (await idb.get(storageKey)) || {};
+    let data: StoredData = (await idb.get(storageKey)) || {};
 
-    searchValue = storedData.searchValue ?? "";
+    searchValue = data.searchValue ?? "";
     if (searchValue) {
       search();
     }
@@ -34,8 +34,11 @@
 
   const updateStorage = debounce(() => idb.set(storageKey, storedData), 1000);
 
-  $: storedData = { searchValue };
-  $: storedData && updateStorage();
+  let storedData;
+  $: {
+    storedData = { searchValue };
+    updateStorage();
+  }
 
   let abortController = new AbortController();
 
