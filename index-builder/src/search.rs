@@ -15,9 +15,7 @@ pub struct SearchResult {
   pub l0: Option<usize>,
   pub l1: Option<usize>,
   pub l2: Option<usize>,
-
-  pub snippet: String,
-  pub snippet_indexes: Vec<(usize, usize)>,
+  pub highlight: Vec<(usize, usize)>,
 }
 
 pub struct Searcher<'a> {
@@ -122,10 +120,21 @@ impl<'a> Searcher<'a> {
         snippet_generator.set_max_num_chars(text.len());
 
         let snippet = snippet_generator.snippet_from_doc(&doc);
+        let snippet_fragment = snippet.fragments();
+
+        let snippet_base_location = if text.len() == snippet_fragment.len() {
+          0
+        } else {
+          text.find(snippet_fragment).unwrap_or(0)
+        };
+
         let snippet_indexes = snippet
           .highlighted()
           .iter()
-          .map(|s| s.bounds())
+          .map(|s| {
+            let b = s.bounds();
+            (b.0 + snippet_base_location, b.1 + snippet_base_location)
+          })
           .collect::<Vec<_>>();
 
         Ok(SearchResult {
@@ -135,8 +144,7 @@ impl<'a> Searcher<'a> {
           l1,
           l2,
           text: String::from(text),
-          snippet: snippet.fragments().to_string(),
-          snippet_indexes,
+          highlight: snippet_indexes,
         })
       })
       .collect::<Result<Vec<_>>>()
