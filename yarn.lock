@@ -2243,6 +2243,11 @@ just-debounce-it@^1.1.0:
   resolved "https://registry.yarnpkg.com/just-debounce-it/-/just-debounce-it-1.1.0.tgz#8e92578effc155358a44f458c52ffbee66983bef"
   integrity sha512-87Nnc0qZKgBZuhFZjYVjSraic0x7zwjhaTMrCKlj0QYKH6lh0KbFzVnfu6LHan03NO7J8ygjeBeD0epejn5Zcg==
 
+just-flatten-it@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/just-flatten-it/-/just-flatten-it-2.1.0.tgz#2514337cc77ee3462869fee3d939b06ec1fd7986"
+  integrity sha512-mX3NUt/LF6EzohLJZXhywCwz2zqdhx6wVkEu6UfUx00lVQlSB6SBV1O+/Le15NfsimrWRD82H69ZkSVQZffhmw==
+
 keygrip@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/keygrip/-/keygrip-1.1.0.tgz#871b1681d5e159c62a445b0c74b615e0917e7226"
@@ -3541,6 +3546,11 @@ svelte-preprocess@^4.6.0, svelte-preprocess@^4.6.1:
     "@types/sass" "^1.16.0"
     detect-indent "^6.0.0"
     strip-indent "^3.0.0"
+
+svelte-zoomable@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/svelte-zoomable/-/svelte-zoomable-0.0.1.tgz#86555ad6ac5da23f056ac079bdc0498845ff08eb"
+  integrity sha512-ljPJSyVRpCrUOaXBbpv7cxwiLkO/QpccUA8W2jlOyybn++e3H53KOm+qoQiWP/wK2GbCDYnb3kxIsFITjv8AoQ==
 
 svelte@^3.31.0:
   version "3.31.0"

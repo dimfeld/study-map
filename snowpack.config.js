@@ -9,7 +9,7 @@ module.exports = {
       '@snowpack/plugin-svelte',
       {
         hmrOptions: {
-          preserveLocalState: true,
+          preserveLocalState: false,
         },
       },
     ],
@@ -20,7 +20,9 @@ module.exports = {
     /* ... */
   ],
   installOptions: {
-    /* ... */
+    rollup: {
+      dedupe: ['svelte'],
+    },
   },
   devOptions: {
     /* ... */

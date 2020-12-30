@@ -1,32 +1,29 @@
 <script lang="typescript">
-  import { onMount } from "svelte";
-  import debounce from "just-debounce-it";
-  import ky from "ky";
-  import * as idb from "idb-keyval";
-  import books from "./bible_books";
+  import { writable } from 'svelte/store';
+  import { onMount, setContext } from 'svelte';
+  import debounce from 'just-debounce-it';
+  import ky from 'ky';
+  import * as idb from 'idb-keyval';
+  import books from './bible_books';
+  import NodeChildren from './NodeChildren.svelte';
+  import type { SearchResult, BookRoot } from './types';
+  import { resultTree, emptyResultTree } from './result_tree';
+  import type { ResultTree } from './result_tree';
 
-  interface Result {
-    score: number;
-    book_id: string;
-    text: string;
-    l0: number;
-    l1: number;
-    l2: number;
-    highlight: [start: number, end: number][];
-  }
+  import { ZoomableContainer } from 'svelte-zoomable';
 
-  let searchValue = "";
+  let searchValue = '';
 
   interface StoredData {
     searchValue?: string;
   }
 
-  const storageKey = "study-map:params";
+  const storageKey = 'study-map:params';
 
   onMount(async () => {
     let data: StoredData = (await idb.get(storageKey)) || {};
 
-    searchValue = data.searchValue ?? "";
+    searchValue = data.searchValue ?? '';
     if (searchValue) {
       search();
     }
@@ -42,23 +39,32 @@
 
   let abortController = new AbortController();
 
+  let scheduledSearch = false;
   async function search() {
     abortController.abort();
-    if (!searchValue) {
+    if (!searchValue || scheduledSearch) {
+      return;
+    }
+
+    if (!$bookData) {
+      // If we don't have a book yet, don't search.
+      scheduledSearch = true;
       return;
     }
 
     try {
-      results = await ky
+      let result = await ky
         .get(`/api/search`, {
           signal: abortController.signal,
           searchParams: {
             query: searchValue,
           },
         })
-        .json();
+        .json<SearchResult[]>();
+
+      results.set(resultTree(result, $bookData.maxDepth));
     } catch (e) {
-      if (e.name !== "AbortError") {
+      if (e.name !== 'AbortError') {
         throw e;
       }
     }
@@ -70,7 +76,7 @@
     return `<span class="highlight">${text}</span>`;
   }
 
-  function highlight(result: Result) {
+  function highlight(result: SearchResult) {
     let text = result.text;
     for (let i = result.highlight.length - 1; i >= 0; --i) {
       let [start, end] = result.highlight[i];
@@ -83,15 +89,85 @@
     return text;
   }
 
-  let results: Result[] = [];
+  const bookId = 'bible-ESV';
+
+  let results = writable<ResultTree | null>(null);
+  setContext('search-results', results);
+
+  let bookData = writable<BookRoot | null>(null);
+  setContext('book-data', bookData);
+
+  function processBookData(rawData) {
+    let maxDepth = 0;
+
+    const processBookNode = (node, depth) => {
+      maxDepth = Math.max(maxDepth, depth);
+      let children = node.children.map((child) => {
+        if (child.children) {
+          return processBookNode(child, depth + 1);
+        } else {
+          return child;
+        }
+      });
+
+      let len = children.reduce((acc, child) => acc + child.len, 0);
+
+      return {
+        ...node,
+        children,
+        len,
+      };
+    };
+
+    let output = processBookNode(rawData, 0);
+
+    console.dir(output);
+
+    return {
+      ...output,
+      maxDepth,
+    };
+  }
+
+  async function loadBook(id) {
+    $bookData = null;
+    results.set(emptyResultTree);
+
+    try {
+      let incomingBookData = await ky
+        .get(`api/info`, {
+          searchParams: {
+            book_id: id,
+          },
+        })
+        .json();
+
+      $bookData = processBookData(incomingBookData);
+
+      if (scheduledSearch) {
+        scheduledSearch = false;
+        await search();
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        throw e;
+      }
+    }
+  }
+
+  loadBook(bookId);
+
+  let contentWidth;
+  const columnWidth = 400;
+  $: numColumns = Math.max(Math.floor(contentWidth / columnWidth), 1);
 </script>
 
 <style lang="postcss">
   #app {
     @apply h-screen w-full overflow-hidden grid;
     grid-template:
-      "header" 3rem
-      "content" 1fr
+      'header' 3rem
+      'content' 1fr
       / auto;
   }
 
@@ -118,15 +194,14 @@
       bind:value={searchValue}
       on:input={debouncedSearch} />
   </header>
-  <main id="content">
-    <p>{results.length} results</p>
-    {#each results as result}
-      <div class="py-2">
-        <p>{books[result.l0]} {result.l1 + 1}:{result.l2 + 1}</p>
-        <p class="font-serif">
-          {@html highlight(result)}
-        </p>
-      </div>
-    {/each}
+  <main
+    id="content"
+    style="--column-width:{columnWidth}px;--num-columns:{numColumns}"
+    bind:clientWidth={contentWidth}>
+    {#if $bookData}
+      <ZoomableContainer>
+        <NodeChildren node={$bookData} depth={0} />
+      </ZoomableContainer>
+    {/if}
   </main>
 </div>
