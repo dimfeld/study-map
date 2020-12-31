@@ -136,7 +136,7 @@
     Verse: sorter('l0', 'l1', 'l2'),
   };
 
-  const selectedSortOption = 'Score';
+  const selectedSortOption = 'Verse';
 
   $: sortResults = sortOptions[selectedSortOption];
   $: sortedResults = ($results?.results || []).slice().sort(sortResults);
@@ -214,12 +214,14 @@
   <nav>
     <ul>
       {#each sortedResults as result}
-        <li>
+        <li class="p-2">
           <p class="font-sans">
             {books[result.l0]}
             {result.l1 + 1}:{result.l2 + 1}
           </p>
-          <p class="font-serif">{highlight(result)}</p>
+          <p class="font-serif">
+            {@html highlight(result)}
+          </p>
         </li>
       {/each}
     </ul>
