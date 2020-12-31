@@ -3547,10 +3547,17 @@ svelte-preprocess@^4.6.0, svelte-preprocess@^4.6.1:
     detect-indent "^6.0.0"
     strip-indent "^3.0.0"
 
-svelte-zoomable@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/svelte-zoomable/-/svelte-zoomable-0.0.1.tgz#86555ad6ac5da23f056ac079bdc0498845ff08eb"
-  integrity sha512-ljPJSyVRpCrUOaXBbpv7cxwiLkO/QpccUA8W2jlOyybn++e3H53KOm+qoQiWP/wK2GbCDYnb3kxIsFITjv8AoQ==
+svelte-style-action@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/svelte-style-action/-/svelte-style-action-0.0.3.tgz#19f0f2e507365300b32195d4aeaa357b8a64cb7c"
+  integrity sha512-CvnR4KKAjPpStJIXaLck9PBEnUo5gnYI9RCI62+fv6DmowRkjJtarnQFX0NaW0HxRy13snde/ByhGc1+NFYq/w==
+
+svelte-zoomable@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/svelte-zoomable/-/svelte-zoomable-0.0.2.tgz#7f9f6367c9ddd0b409e9ef6555780ffe96ac8835"
+  integrity sha512-YCVip4fUVS/c3dQylw9VoVlDwEwia7GTYYO7JAoqOuPjh3FRBv1DYdGeH2IdurPTqQ7T1sOXSiLVF77qB6sErw==
+  dependencies:
+    svelte-style-action "^0.0.3"
 
 svelte@^3.31.0:
   version "3.31.0"

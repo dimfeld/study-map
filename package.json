@@ -3,7 +3,7 @@
   "author": "Daniel Imfeld <daniel@imfeld.dev>",
   "license": "MIT",
   "scripts": {
-    "start": "snowpack dev",
+    "start": "snowpack dev --reload",
     "build": "snowpack build",
     "test": "web-test-runner \"src/**/*.test.js\"",
     "clean-data": "rimraf api/data/*"
@@ -14,7 +14,7 @@
     "just-flatten-it": "^2.1.0",
     "ky": "^0.25.1",
     "svelte": "^3.31.0",
-    "svelte-zoomable": "^0.0.1",
+    "svelte-zoomable": "^0.0.2",
     "tinro": "^0.4.6",
     "tslib": "^2.0.3"
   },
