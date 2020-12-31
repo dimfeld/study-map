@@ -9,6 +9,8 @@
   import type { SearchResult, BookRoot } from './types';
   import { resultTree, emptyResultTree } from './result_tree';
   import type { ResultTree } from './result_tree';
+  import type { CompareFn } from 'sorters';
+  import sorter from 'sorters';
 
   import { ZoomableContainer } from 'svelte-zoomable';
 
@@ -129,6 +131,16 @@
     };
   }
 
+  const sortOptions: Record<string, CompareFn<SearchResult>> = {
+    Score: sorter({ value: 'score', descending: true }),
+    Verse: sorter('l0', 'l1', 'l2'),
+  };
+
+  const selectedSortOption = 'Score';
+
+  $: sortResults = sortOptions[selectedSortOption];
+  $: sortedResults = ($results?.results || []).slice().sort(sortResults);
+
   async function loadBook(id) {
     $bookData = null;
     results.set(emptyResultTree);
@@ -166,13 +178,18 @@
   #app {
     @apply h-screen w-full overflow-hidden grid;
     grid-template:
-      'header' 3rem
-      'content' 1fr
-      / auto;
+      'header header' 3rem
+      'search-results content' 1fr
+      / clamp(30ch, 25%, 80ch) auto;
   }
 
   #app > header {
     grid-area: header;
+  }
+
+  nav {
+    grid-area: search-results;
+    @apply overflow-y-auto overflow-x-hidden;
   }
 
   main {
@@ -194,6 +211,19 @@
       bind:value={searchValue}
       on:input={debouncedSearch} />
   </header>
+  <nav>
+    <ul>
+      {#each sortedResults as result}
+        <li>
+          <p class="font-sans">
+            {books[result.l0]}
+            {result.l1 + 1}:{result.l2 + 1}
+          </p>
+          <p class="font-serif">{highlight(result)}</p>
+        </li>
+      {/each}
+    </ul>
+  </nav>
   <main
     id="content"
     style="--column-width:{columnWidth}px;--num-columns:{numColumns}"

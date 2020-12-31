@@ -26,20 +26,26 @@ export function resultTree(results: SearchResult[], maxDepth: number) {
     }
   }
 
-  return (path: number[]) => {
-    let node = root;
-    for (let p of path) {
-      node = node[p];
-      if (!node) {
-        return [];
+  return {
+    results,
+    subtree: (path: number[]) => {
+      let node = root;
+      for (let p of path) {
+        node = node[p];
+        if (!node) {
+          return [];
+        }
       }
-    }
 
-    console.log({ path, node });
-    return flatten(node).filter(Boolean) as SearchResult[];
+      console.log({ path, node });
+      return flatten(node).filter(Boolean) as SearchResult[];
+    },
   };
 }
 
-export const emptyResultTree = () => [];
+export const emptyResultTree: ResultTree = {
+  results: [],
+  subtree: () => [],
+};
 
 export type ResultTree = ReturnType<typeof resultTree>;

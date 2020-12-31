@@ -32,7 +32,7 @@
     overviewClass="border border-gray-200 -mt-px -ml-px">
     <div slot="overview" class="h-full overflow-hidden text-xs" let:path>
       {nodeName}:
-      {$results(path).length}
+      {$results.subtree(path).length}
       results (size
       {sizeRatio})
     </div>

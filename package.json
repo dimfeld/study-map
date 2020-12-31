@@ -13,10 +13,14 @@
     "just-debounce-it": "^1.1.0",
     "just-flatten-it": "^2.1.0",
     "ky": "^0.25.1",
+    "sorters": "^0.0.4",
     "svelte": "^3.31.0",
     "svelte-zoomable": "^0.0.2",
     "tinro": "^0.4.6",
     "tslib": "^2.0.3"
+  },
+  "optionalDependencies": {
+    "@dimfeld/components": "github:dimfeld/components"
   },
   "devDependencies": {
     "@snowpack/plugin-dotenv": "^2.0.5",

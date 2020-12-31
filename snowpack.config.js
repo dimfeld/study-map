@@ -34,6 +34,6 @@ module.exports = {
     /* ... */
   },
   alias: {
-    /* ... */
+    '@components': '@dimfeld/components',
   },
 };
