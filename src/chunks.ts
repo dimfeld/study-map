@@ -14,11 +14,15 @@ function describeRange(
   let endChapter = endRange[1] + 1;
 
   if (startBook === endBook) {
-    if (startChapter === endChapter) {
+    if (startChapter === 1 && endChapter === startBook.children.length) {
+      return startBook.name;
+    } else if (startChapter === endChapter) {
       return `${startBook.name} ${startChapter}`;
     } else {
       return `${startBook.name} ${startChapter}-${endChapter}`;
     }
+  } else if (startChapter === 1 && endChapter === endBook.children.length) {
+    return `${startBook.name} - ${endBook.name}`;
   } else {
     return `${startBook.name} ${startChapter} - ${endBook.name} ${endChapter}`;
   }
