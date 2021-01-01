@@ -11,6 +11,7 @@
   import type { ResultTree } from './result_tree';
   import type { CompareFn } from 'sorters';
   import sorter from 'sorters';
+  import observeResize from './resizeObserver';
 
   import { ZoomableContainer } from 'svelte-zoomable';
 
@@ -229,7 +230,9 @@
   <main
     id="content"
     style="--column-width:{columnWidth}px;--num-columns:{numColumns}"
-    bind:clientWidth={contentWidth}>
+    use:observeResize={(entry) => {
+      setTimeout(() => (contentWidth = entry.contentRect.width));
+    }}>
     {#if $bookData}
       <ZoomableContainer>
         <NodeChildren node={$bookData} depth={0} />

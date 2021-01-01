@@ -3,6 +3,7 @@
   import type { ResultTree } from './result_tree';
   import type { Writable } from 'svelte/store';
   import { getContext } from 'svelte';
+  import observeResize from './resizeObserver';
 
   export let node: BookDataNode;
   export let index: number;
@@ -17,8 +18,17 @@
 
   let numLines = 0;
   let lines = [];
+  let showHeader = true;
   $: {
-    numLines = Math.ceil(Math.max(0, height / 6 - 1));
+    numLines = Math.ceil(Math.max(1, height / 6 - 1));
+
+    if (numLines > 2) {
+      showHeader = true;
+      numLines -= 1;
+    } else {
+      showHeader = false;
+    }
+
     lines = new Array(numLines).fill(0);
 
     let resultFactor = numLines / node.children.length;
@@ -28,6 +38,12 @@
       let lineIndex = Math.floor(resultIndex * resultFactor);
       lines[lineIndex] += 1;
     }
+  }
+
+  function handleSize(entry) {
+    setTimeout(() => {
+      height = entry.contentRect.height;
+    });
   }
 </script>
 
@@ -61,11 +77,10 @@
 </style>
 
 <section
-  bind:clientHeight={height}
-  class:py-1={lines.length > 2}
+  use:observeResize={handleSize}
   class="overview-box px-2 w-full h-full hover:bg-gray-100 overflow-hidden text-xs">
-  {#if lines.length > 2}
-    <div class="w-full flex justify-between leading-none">
+  {#if showHeader}
+    <div class="w-full flex justify-between leading-none pt-1">
       <span>{nodeName}</span>
       <span>{results.length}
         {results.length === 1 ? 'result' : 'results'}</span>
