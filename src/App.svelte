@@ -11,9 +11,7 @@
   import type { ResultTree } from './result_tree';
   import type { CompareFn } from 'sorters';
   import sorter from 'sorters';
-  import observeResize from './resizeObserver';
-
-  import { ZoomableContainer } from 'svelte-zoomable';
+  import BookOverview from './BookOverview.svelte';
 
   let searchValue = '';
 
@@ -169,10 +167,6 @@
   }
 
   loadBook(bookId);
-
-  let contentWidth;
-  const columnWidth = 400;
-  $: numColumns = Math.max(Math.floor(contentWidth / columnWidth), 1);
 </script>
 
 <style lang="postcss">
@@ -227,16 +221,9 @@
       {/each}
     </ul>
   </nav>
-  <main
-    id="content"
-    style="--column-width:{columnWidth}px;--num-columns:{numColumns}"
-    use:observeResize={(entry) => {
-      setTimeout(() => (contentWidth = entry.contentRect.width));
-    }}>
+  <main>
     {#if $bookData}
-      <ZoomableContainer>
-        <NodeChildren node={$bookData} depth={0} />
-      </ZoomableContainer>
+      <BookOverview book={$bookData} />
     {/if}
   </main>
 </div>
