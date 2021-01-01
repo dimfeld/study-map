@@ -1866,6 +1866,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+heapify@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/heapify/-/heapify-0.4.0.tgz#34701b336f43059e0b3deebb4887d28f0fc073b2"
+  integrity sha512-vNb/lMpITi80EH0mUNoAOUromDvNJGIbGZhbGKpQbSdXYWMNxsujsmgMlW6HFd25VTI8Sq+Am9wqkSRYfOxPyQ==
+
 html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/html-escaper/-/html-escaper-2.0.2.tgz#dfd60027da36a36dfcbe236262c00a5822681453"
