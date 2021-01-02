@@ -10,6 +10,7 @@
   import { resultTree, emptyResultTree } from './result_tree';
   import type { ResultTree } from './result_tree';
   import type { CompareFn } from 'sorters';
+  import { fade } from 'svelte/transition';
   import sorter from 'sorters';
   import BookOverview from './BookOverview.svelte';
 
@@ -21,6 +22,7 @@
 
   const storageKey = 'study-map:params';
 
+  let showBanner = true;
   onMount(async () => {
     let data: StoredData = (await idb.get(storageKey)) || {};
 
@@ -28,6 +30,8 @@
     if (searchValue) {
       search();
     }
+
+    setTimeout(() => (showBanner = false), 5000);
   });
 
   const updateStorage = debounce(() => idb.set(storageKey, storedData), 1000);
@@ -227,3 +231,14 @@
     {/if}
   </main>
 </div>
+
+{#if showBanner}
+  <div
+    class="fixed inset-x-0 top-0 grid grid-cols-1 grid-rows-1 items-start justify-items-center"
+    out:fade>
+    <div class="bg-gray-100 shadow-xl w-96 py-4 px-8">
+      This a work in progress and things are very likely broken. If you find
+      this interesting please feel free to ping me at @dimfeld on Twitter!
+    </div>
+  </div>
+{/if}
