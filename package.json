@@ -20,9 +20,6 @@
     "tinro": "^0.4.6",
     "tslib": "^2.0.3"
   },
-  "optionalDependencies": {
-    "@dimfeld/components": "github:dimfeld/components"
-  },
   "devDependencies": {
     "@snowpack/plugin-dotenv": "^2.0.5",
     "@snowpack/plugin-postcss": "^1.0.11",

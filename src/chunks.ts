@@ -2,6 +2,12 @@ import { BookRoot, BookDataNode } from './types';
 import Heapify from 'heapify';
 import sorter from 'sorters';
 
+export interface Chunk {
+  start: number[];
+  end: number[];
+  title: string;
+}
+
 function describeRange(
   book: BookRoot,
   startRange: number[],
@@ -30,7 +36,7 @@ function describeRange(
 
 /** Split a book into chunks, enforcing that every chunk is completely within a single L0-chunk
  * (i.e. a Bible book) when possible. */
-export function l0BoundaryChunks(numElements: number, book: BookRoot) {
+export function l0BoundaryChunks(numElements: number, book: BookRoot): Chunk[] {
   if (book.children.length < numElements) {
     return splitL0Children(numElements, book);
   } else if (book.children.length > numElements) {
@@ -49,7 +55,7 @@ export function l0BoundaryChunks(numElements: number, book: BookRoot) {
 }
 
 /** We need more elements than we have L0 children, so split the largest children into multiple ranges */
-function splitL0Children(desiredElements: number, book: BookRoot) {
+function splitL0Children(desiredElements: number, book: BookRoot): Chunk[] {
   let children = book.children.map((c) => ({
     totalLength: c.len,
     chunks: 1,
@@ -89,7 +95,7 @@ function splitL0Children(desiredElements: number, book: BookRoot) {
   });
 }
 
-function mergeL0Children(desiredElements: number, book: BookRoot) {
+function mergeL0Children(desiredElements: number, book: BookRoot): Chunk[] {
   let chunks = book.children
     .map((c, i) => ({
       totalLength: c.len,
@@ -149,7 +155,7 @@ function mergeL0Children(desiredElements: number, book: BookRoot) {
  * Keeping it here for reference and in case it actually ends up working better for some other
  * type of text.
  */
-export function evenChunks(numElements: number, book: BookRoot) {
+export function evenChunks(numElements: number, book: BookRoot): Chunk[] {
   let idealLengthPerElement = book.len / numElements;
   let ranges = new Array(numElements);
   let nextPath = [0, 0];

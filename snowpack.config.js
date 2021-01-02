@@ -33,7 +33,5 @@ module.exports = {
   proxy: {
     /* ... */
   },
-  alias: {
-    '@components': '@dimfeld/components',
-  },
+  alias: {},
 };

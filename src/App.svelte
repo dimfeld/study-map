@@ -192,7 +192,7 @@
     @apply p-2 overflow-auto;
   }
 
-  :global(.highlight) {
+  .search-result :global(.highlight) {
     @apply font-medium text-amber-600;
   }
 </style>
@@ -209,7 +209,7 @@
   <nav>
     <ul>
       {#each sortedResults as result}
-        <li class="p-2">
+        <li class="search-result p-2">
           <p class="font-sans">
             {books[result.l0]}
             {result.l1 + 1}:{result.l2 + 1}

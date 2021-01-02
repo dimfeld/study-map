@@ -7,6 +7,7 @@
   import type { SearchResult, BookRoot, BookDataNode } from './types';
   import type { ResultTree } from './result_tree';
   import { l0BoundaryChunks } from './chunks';
+  import type { Chunk } from './chunks';
 
   export let columnWidth = 300;
   export let book: BookRoot;
@@ -18,7 +19,7 @@
 
   const results = getContext<Writable<ResultTree>>('search-results');
 
-  let ranges = [];
+  let ranges: Chunk[] = [];
 
   $: lineHeight =
     (container ? parseInt(getComputedStyle(container).lineHeight, 10) : null) ||
@@ -32,8 +33,10 @@
     ranges = l0BoundaryChunks(numElements, book);
   }
 
-  // TODO add highlighting info
-  $: elements = ranges.map((r) => r);
+  $: elements = ranges.map((r) => ({
+    ...r,
+    results: $results.range(r.start, r.end),
+  }));
 
   function handleSize(entry) {
     setTimeout(() => {
@@ -43,22 +46,33 @@
   }
 </script>
 
-<style>
+<style lang="postcss">
   .overview {
     column-count: auto;
     column-width: var(--column-width, 400px);
     column-gap: 0px;
+  }
+
+  .line.highlight {
+    @apply bg-amber-500 rounded-full;
+    --tw-bg-opacity: min(1, calc(0.25 + 10 * var(--highlights)));
   }
 </style>
 
 <ZoomableContainer>
   <div
     bind:this={container}
-    class="overview w-full h-full text-sm"
+    class="overview w-full h-full text-xs"
     style="--column-width:{columnWidth}px"
     use:observeResize={handleSize}>
     {#each elements as range, index}
-      <div data-index={index}>{range.title}</div>
+      <div
+        data-index={index}
+        class="line pl-2 mx-2"
+        class:highlight={range.results.length > 0}
+        style="--highlights:{range.results.length / $results.results.length}">
+        {range.title}
+      </div>
     {/each}
   </div>
 </ZoomableContainer>
