@@ -236,7 +236,9 @@
   <div
     class="fixed inset-x-0 top-0 grid grid-cols-1 grid-rows-1 items-start justify-items-center"
     out:fade>
-    <div class="bg-gray-100 shadow-xl w-96 py-4 px-8">
+    <div
+      class="bg-gray-100 shadow-xl w-96 py-4 px-8"
+      on:click={() => (showBanner = false)}>
       This a work in progress and things are very likely broken. If you find
       this interesting please feel free to ping me at @dimfeld on Twitter!
     </div>
