@@ -5,7 +5,8 @@ import sorter from 'sorters';
 export interface Chunk {
   start: number[];
   end: number[];
-  title: string;
+  label?: string;
+  description: string;
 }
 
 function describeRange(
@@ -34,6 +35,29 @@ function describeRange(
   }
 }
 
+/** Create a label for ranges that span the start of a book. */
+function labelRange(book: BookRoot, startRange: number[], endRange: number[]) {
+  if (startRange[0] === endRange[0]) {
+    if (startRange[1] !== 0) {
+      // This range does not include the start of a book.
+      return undefined;
+    }
+
+    return book.children[startRange[0]].name;
+  } else {
+    let startIndex = startRange[0];
+    if (startRange[1] !== 0) {
+      startIndex++;
+    }
+
+    let endIndex = endRange[0];
+    return book.children
+      .slice(startIndex, endIndex + 1)
+      .map((c) => c.name)
+      .join(', ');
+  }
+}
+
 /** Split a book into chunks, enforcing that every chunk is completely within a single L0-chunk
  * (i.e. a Bible book) when possible. */
 export function l0BoundaryChunks(numElements: number, book: BookRoot): Chunk[] {
@@ -48,7 +72,8 @@ export function l0BoundaryChunks(numElements: number, book: BookRoot): Chunk[] {
       return {
         start: [i, 0],
         end: [i, child.children.length - 1],
-        title: child.name,
+        label: child.name,
+        description: child.name,
       };
     });
   }
@@ -89,7 +114,8 @@ function splitL0Children(desiredElements: number, book: BookRoot): Chunk[] {
       return {
         start,
         end,
-        title: describeRange(book, start, end),
+        label: labelRange(book, start, end),
+        description: describeRange(book, start, end),
       };
     });
   });
@@ -145,7 +171,8 @@ function mergeL0Children(desiredElements: number, book: BookRoot): Chunk[] {
     return {
       start,
       end,
-      title: describeRange(book, start, end),
+      label: labelRange(book, start, end),
+      description: describeRange(book, start, end),
     };
   });
 }
@@ -157,7 +184,7 @@ function mergeL0Children(desiredElements: number, book: BookRoot): Chunk[] {
  */
 export function evenChunks(numElements: number, book: BookRoot): Chunk[] {
   let idealLengthPerElement = book.len / numElements;
-  let ranges = new Array(numElements);
+  let ranges: Chunk[] = new Array(numElements);
   let nextPath = [0, 0];
 
   function getNextPassage() {
@@ -240,7 +267,8 @@ export function evenChunks(numElements: number, book: BookRoot): Chunk[] {
     ranges[i] = {
       start: startRange,
       end: endRange,
-      title: describeRange(book, startRange, endRange),
+      label: labelRange(book, startRange, endRange),
+      description: describeRange(book, startRange, endRange),
     };
   }
 

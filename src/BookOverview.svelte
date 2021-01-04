@@ -2,12 +2,13 @@
   import { getContext } from 'svelte';
   import type { Writable } from 'svelte/store';
 
-  import { ZoomableContainer } from 'svelte-zoomable';
+  import { ZoomableContainer, Zoomable } from 'svelte-zoomable';
   import observeResize from './resizeObserver';
   import type { SearchResult, BookRoot, BookDataNode } from './types';
   import type { ResultTree } from './result_tree';
   import { l0BoundaryChunks } from './chunks';
   import type { Chunk } from './chunks';
+  import BookRangeText from './BookRangeText.svelte';
 
   export let columnWidth = 300;
   export let book: BookRoot;
@@ -15,20 +16,15 @@
   let contentWidth = 0;
   let contentHeight = 0;
 
-  let container: HTMLElement;
-
   const results = getContext<Writable<ResultTree>>('search-results');
 
-  let ranges: Chunk[] = [];
-
-  $: lineHeight =
-    (container ? parseInt(getComputedStyle(container).lineHeight, 10) : null) ||
-    14;
+  const lineHeight = 10;
 
   $: numColumns = Math.max(Math.floor(contentWidth / columnWidth), 1);
   $: elementsPerColumn = Math.floor(contentHeight / lineHeight);
   $: numElements = numColumns * elementsPerColumn;
 
+  let ranges: Chunk[] = [];
   $: if (numElements) {
     ranges = l0BoundaryChunks(numElements, book);
   }
@@ -39,10 +35,32 @@
   }));
 
   function handleSize(entry) {
-    setTimeout(() => {
+    if (!contentWidth) {
       contentWidth = entry.contentRect.width;
       contentHeight = entry.contentRect.height;
-    });
+    } else {
+      setTimeout(() => {
+        contentWidth = entry.contentRect.width;
+        contentHeight = entry.contentRect.height;
+      });
+    }
+  }
+
+  function margin(index) {
+    if (index % 7 === 0) {
+      return 5;
+    } else if (index % 5 === 0) {
+      return 7;
+    }
+
+    switch (index % 3) {
+      case 0:
+        return 10;
+      case 1:
+        return 20;
+      case 2:
+        return 15;
+    }
   }
 </script>
 
@@ -53,26 +71,61 @@
     column-gap: 0px;
   }
 
+  .line {
+    height: 8px;
+    margin-bottom: 2px;
+    break-inside: avoid;
+    @apply rounded-full overflow-visible bg-gray-200 hover:bg-gray-300;
+  }
+
+  .line:nth-child(3n) {
+    margin-right: 10%;
+  }
+
+  .line:nth-child(3n + 1) {
+    margin-right: 20%;
+  }
+
+  .line:nth-child(3n + 2) {
+    margin-right: 15%;
+  }
+
+  .line:nth-child(5n + 1) {
+    margin-right: 7%;
+  }
+
+  .line:nth-child(7n + 1) {
+    margin-right: 5%;
+  }
+
   .line.highlight {
-    @apply bg-amber-500 rounded-full;
+    @apply bg-amber-500 hover:bg-amber-600;
     --tw-bg-opacity: min(1, calc(0.25 + 10 * var(--highlights)));
   }
 </style>
 
 <ZoomableContainer>
   <div
-    bind:this={container}
     class="overview w-full h-full text-xs"
     style="--column-width:{columnWidth}px"
     use:observeResize={handleSize}>
     {#each elements as range, index}
-      <div
-        data-index={index}
-        class="line pl-2 mx-2"
-        class:highlight={range.results.length > 0}
-        style="--highlights:{range.results.length / $results.results.length}">
-        {range.title}
-      </div>
+      <Zoomable id={index.toString()} title={range.description}>
+        <div
+          slot="overview"
+          data-index={index}
+          class="line pl-2 mx-2"
+          class:highlight={range.results.length > 0}
+          style="--highlights:{range.results.length / $results.results.length};margin-right:{margin(index)}%">
+          {#if range.label}
+            <div class="absolute top-0 left-2 z-50">{range.label}</div>
+          {/if}
+        </div>
+        <div slot="detail" let:back>
+          <button type="button" on:click={back}>Back</button>
+          <BookRangeText {book} {range} />
+        </div>
+      </Zoomable>
     {/each}
   </div>
 </ZoomableContainer>
