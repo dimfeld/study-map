@@ -3647,10 +3647,10 @@ through@^2.3.8:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
-tinro@^0.4.6:
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/tinro/-/tinro-0.4.6.tgz#1f9dd3194c0a3a5da4d4246d9433d4e3af8cb71d"
-  integrity sha512-kDfkK14N396qr8YZyOndURr1Axc7k3icO3E/8R44KxcKdp6uYudwOlqqgvzyce2EB5Poh69BL7WqOab4wJx9uw==
+tinro@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/tinro/-/tinro-0.5.1.tgz#7ac83a5c0510e624129fc40699d3b82e24bbf14b"
+  integrity sha512-XYXfKs1bCs8/gkAuRTVPG2ozcZeqlpO2Pl4bIX7jDw5ChwObpYbsKC8BDi1pxyGZs5+wLtldc6Qrh8X+GWTDaw==
 
 to-regex-range@^5.0.1:
   version "5.0.1"

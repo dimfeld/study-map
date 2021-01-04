@@ -17,7 +17,7 @@
     "sorters": "^0.0.4",
     "svelte": "^3.31.0",
     "svelte-zoomable": "^0.0.2",
-    "tinro": "^0.4.6",
+    "tinro": "^0.5.1",
     "tslib": "^2.0.3"
   },
   "devDependencies": {

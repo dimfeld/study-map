@@ -2,7 +2,7 @@
   import { getContext } from 'svelte';
   import type { Writable } from 'svelte/store';
 
-  import { ZoomableContainer, Zoomable } from 'svelte-zoomable';
+  import { router } from 'tinro';
   import observeResize from './resizeObserver';
   import type { SearchResult, BookRoot, BookDataNode } from './types';
   import type { ResultTree } from './result_tree';
@@ -43,23 +43,6 @@
         contentWidth = entry.contentRect.width;
         contentHeight = entry.contentRect.height;
       });
-    }
-  }
-
-  function margin(index) {
-    if (index % 7 === 0) {
-      return 5;
-    } else if (index % 5 === 0) {
-      return 7;
-    }
-
-    switch (index % 3) {
-      case 0:
-        return 10;
-      case 1:
-        return 20;
-      case 2:
-        return 15;
     }
   }
 </script>
@@ -104,28 +87,20 @@
   }
 </style>
 
-<ZoomableContainer>
-  <div
-    class="overview w-full h-full text-xs"
-    style="--column-width:{columnWidth}px"
-    use:observeResize={handleSize}>
-    {#each elements as range, index}
-      <Zoomable id={index.toString()} title={range.description}>
-        <div
-          slot="overview"
-          data-index={index}
-          class="line pl-2 mx-2"
-          class:highlight={range.results.length > 0}
-          style="--highlights:{range.results.length / $results.results.length};margin-right:{margin(index)}%">
-          {#if range.label}
-            <div class="absolute top-0 left-2 z-50">{range.label}</div>
-          {/if}
-        </div>
-        <div slot="detail" let:back>
-          <button type="button" on:click={back}>Back</button>
-          <BookRangeText {book} {range} />
-        </div>
-      </Zoomable>
-    {/each}
-  </div>
-</ZoomableContainer>
+<div
+  class="overview w-full h-full text-xs"
+  style="--column-width:{columnWidth}px"
+  use:observeResize={handleSize}>
+  {#each elements as range, index}
+    <div
+      data-index={index}
+      class="line pl-2 mx-2"
+      class:highlight={range.results.length > 0}
+      style="--highlights:{range.results.length / $results.results.length}"
+      on:click={() => router.goto(`/passage/${range.start[0]},${range.start[1]}/${range.end[0]},${range.end[1]}`)}>
+      {#if range.label}
+        <div class="absolute top-0 left-2 z-50">{range.label}</div>
+      {/if}
+    </div>
+  {/each}
+</div>

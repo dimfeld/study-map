@@ -12,7 +12,7 @@
   import type { CompareFn } from 'sorters';
   import { fade } from 'svelte/transition';
   import sorter from 'sorters';
-  import BookOverview from './BookOverview.svelte';
+  import Main from './Main.svelte';
 
   let searchValue = '';
 
@@ -150,7 +150,7 @@
 
     try {
       let incomingBookData = await ky
-        .get(`api/info`, {
+        .get(`/api/info`, {
           searchParams: {
             book_id: id,
           },
@@ -227,7 +227,7 @@
   </nav>
   <main>
     {#if $bookData}
-      <BookOverview book={$bookData} />
+      <Main book={$bookData} />
     {/if}
   </main>
 </div>

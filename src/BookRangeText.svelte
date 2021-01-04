@@ -5,7 +5,8 @@
   import type { Writable } from 'svelte/store';
   import type { ResultTree } from './result_tree';
 
-  export let range: Chunk;
+  export let start: number[];
+  export let end: number[];
   export let book: BookRoot;
 
   const results = getContext<Writable<ResultTree>>('search-results');
@@ -13,16 +14,16 @@
   let textChunks = [];
 
   $: {
-    let path = range.start.slice();
+    let path = start.slice();
 
     textChunks = [];
-    while (path[0] <= range.end[0]) {
+    while (path[0] <= end[0]) {
       textChunks.push([...path]);
 
       path[1]++;
       if (path[1] >= book.children[path[0]].children.length) {
         path = [path[0] + 1, 0];
-      } else if (path[0] === range.end[0] && path[1] > range.end[1]) {
+      } else if (path[0] === end[0] && path[1] > end[1]) {
         break;
       }
     }
